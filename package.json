@@ -1,0 +1,25 @@
+{
+  "name": "film-store",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "format": "^0.2.2",
+    "jest": "^28.1.3",
+    "jsonwebtoken": "^9.0.1",
+    "nodemon": "^3.0.1",
+    "pg": "^8.11.1",
+    "pg-format": "^1.0.4",
+    "supertest": "^6.2.4"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest --forceExit"
+  },
+  "eslintConfig": {
+    "extends": []
+  }
+}
