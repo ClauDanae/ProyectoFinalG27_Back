@@ -4,11 +4,9 @@ const app = express();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 
-console.log(process.env.PORT)
-
 const {
   GetMovies, GetMovie, verificarCredenciales,
-  registrarUsuario, getUsuario
+  registrarUsuario, getUsuario,GetCategorias
 } = require("./queries");
 const { validaLogin, usuarioExiste, verificarToken, decodificarToken } = require("./middleware");
 
@@ -51,26 +49,28 @@ app.get("/usuario/:correo", async (req, res) => {
   }
 });
 
-app.get("/peliculas", async (req, res) => {
-  try {
-    const movies = await GetMovies();   
+app.get("/peliculas",  async (req, res) => {
+  try {        
+    const movies = await GetMovies(req.query);
+    //const conv = await ConvencionHATEOAS(movies);    
     res.json(movies);
   } catch (error) {
     res.status(400).send(error.message);
   }
 });
 
-app.get("/categorias", async (req, res) => {
-  try {
-    const categ = await GetCategorias();
+
+app.get("/categorias",  async (req, res) => {
+  try {        
+    const categ = await GetCategorias();      
     res.json(categ);
   } catch (error) {
     res.status(400).send(error.message);
   }
 });
 
-app.get("/peliculas/:id", async (req, res) => {
-  try {
+app.get("/pelicula/:id", async (req, res) => {
+  try {    
     const movies = await GetMovie(req.params.id);
     //const hate = await prepararHATEOAS(joyas);    
     res.json(movies);

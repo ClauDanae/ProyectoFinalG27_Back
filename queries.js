@@ -86,10 +86,33 @@ const ConvencionHATEOAS = (movies) => {
   return HATEOAS;
 };
 
-const GetMovies = async () => {
+const GetMovies = async (param) => {
   try {
-    const {rows} = await pool.query('SELECT * FROM peliculas')
-    return(rows)
+    let filtros = [];    
+    if (param.idcategoria > 0)
+      filtros.push(`idcategoria = ${param.idcategoria}`);
+    if (param.agno > 0) filtros.push(`agno = ${param.agno}`);
+    if (param.titulo) filtros.push(`lower(titulo) like lower ('%${param.titulo}%')`);
+    if (param.director) filtros.push(`director like %${param.director}%`);
+
+    const [order1, order2] = param.orderby.split(",");
+    const [campo, direccion] = order1.split("_");
+    const [campo2, direccion2] = order2.split("_");
+
+    const offset = (param.page - 1) * param.limit;
+    let qry =
+      "SELECT id,titulo,precio,stock,director,agno,titulo_alt,SUBSTRING (s.sinopsis,1,60) || '...' as sinopsis" +
+      " FROM pelicula p" +
+      " LEFT JOIN pelicula_sinopsis s ON p.id = s.idpelicula";
+    if (filtros.length > 0) {
+      filtros = filtros.join(" AND ");
+      qry += ` WHERE ${filtros}`;
+    }
+    qry += ` order by ${campo} ${direccion},${campo2} ${direccion2} OFFSET ${offset} LIMIT ${param.limit}`;
+    
+    
+    const { rows: movies } = await pool.query(qry);
+    return movies;
   } catch (error) {
     throw { code: 404, message: error.message };
   }
@@ -99,8 +122,11 @@ const GetMovie = async (id) => {
   try {
     const value = [id];
     const qry =
-      "SELECT id,titulo,precio,director,agno,categoria,sinopsis" +
-      " FROM peliculas WHERE id = $1";
+      "SELECT id,titulo,precio,p.idcategoria,stock,director,agno,titulo_alt,c.nombre as genero,s.sinopsis" +
+      " FROM pelicula p" +
+      " INNER JOIN categoria c ON p.idcategoria = c.idcategoria" + 
+      " LEFT JOIN pelicula_sinopsis s ON p.id = s.idpelicula"
+      +" WHERE id = $1";
     const { rows: movies } = await pool.query(qry, value);
     return movies;
   } catch (error) {
