@@ -33,7 +33,6 @@ app.post("/login", validaLogin, async (req, res) => {
 
 app.post("/registro", validaLogin, usuarioExiste, async (req, res) => {
   try {
-
     await registrarUsuario(req.body);
     res.status(201).send({ code: 201, message: 'Usuario creado' });
   } catch (error) {

@@ -32,28 +32,26 @@ const verificarCredenciales = async (email, password) => {
 
 const registrarUsuario = async (data) => {
   try {
-    let { nombre, direccion, fono, password, mail } = data;
+    let { mail, nombre, direccion, fono, password } = data;
     const passwordEncriptada = bcrypt.hashSync(password, 10);
     password = passwordEncriptada;
-    const values = [nombre, direccion, fono, passwordEncriptada, mail];
-    console.log(values);
+    let activo = true
+    const values = [mail, nombre, activo, direccion, fono, passwordEncriptada];
     const consulta =
-      "insert into usuarios (nombre,direccion,fono,password,mail) " +
-      " values ($1,$2,$3,$4,$5)";
+      "insert into usuarios values (DEFAULT, $1, $2, $3, $4, $5, $6)";
     const { rowCount } = await pool.query(consulta, values);
-    //if (!rowCount) throw { code: 404, message: "No se agregó el usuario" };
     if (!rowCount) {
       throw new Error("code: 404", "message: No se agregó el usuario");
     }
   } catch (error) {
+    console.log(error)
     capturaErrores(error.message, ErrorHttp["Bad Request"]);
-    //throw { code: 404,message: error.message };
   }
 };
 
-const verificarUsuario = async (email) => {
+const verificarUsuario = async (mail) => {
   try {
-    const values = [email];
+    const values = [mail];
     const consulta = "SELECT * FROM usuarios WHERE mail = $1";
     const { rowCount } = await pool.query(consulta, values);
 
