@@ -2,13 +2,6 @@
 DROP DATABASE tienda_peliculas;
 
 CREATE DATABASE tienda_peliculas;
-WITH 
-    OWNER = postgres
-    ENCODING = 'UTF8'
-    LC_COLLATE = 'es_ES.utf8'
-    LC_CTYPE = 'es_ES.utf8'
-    TABLESPACE = pg_default
-    CONNECTION LIMIT = -1;
 
 \c tienda_peliculas
 
@@ -34,14 +27,16 @@ CREATE TABLE IF NOT EXISTS usuarios
     direccion VARCHAR(200) NOT NULL,
     fono VARCHAR(20) NOT NULL,
     password VARCHAR(200) NOT NULL,
+    admin boolean DEFAULT false,
     primary key (id)
 );
 
 CREATE TABLE IF NOT EXISTS usuario_compra
 (
-    idpelicula INT NOT NULL,
     idusuario INT NOT NULL,
-    fecha_compra DATE,
+    pelicula VARCHAR(100),
+    price INT NOT NULL,
+    fecha_compra VARCHAR,
     cantidad INT DEFAULT 0
 );
 
@@ -53,10 +48,11 @@ CREATE TABLE IF NOT EXISTS usuario_pelicula
     puntuacion INT DEFAULT 0
 );
 
-ALTER TABLE usuario_compra ADD FOREIGN KEY (idpelicula) REFERENCES peliculas(id);
 ALTER TABLE usuario_compra ADD FOREIGN KEY (idusuario) REFERENCES usuarios(id);
 ALTER TABLE usuario_pelicula ADD FOREIGN KEY (idpelicula) REFERENCES peliculas(id);
 ALTER TABLE usuario_pelicula ADD FOREIGN KEY (idusuario) REFERENCES usuarios(id);
+
+INSERT INTO usuarios VALUES (default, 'sergio@correo.com', 'Sergio', true, 'Copiapo', '123456789', '123123', true);
 
 INSERT INTO peliculas (id, name, price, genre, director, agno, sinopsis, img) VALUES (default, 'el señor de los anillos: la comunidad del anillo', 10000, 'fantasia', 'peter jackson', 2001, 'Frodo Bolsón es un hobbit al que su tío Bilbo hace portador del poderoso Anillo Único, capaz de otorgar un poder ilimitado al que la posea, con la finalidad de destruirlo. Sin embargo, fuerzas malignas muy poderosas quieren arrebatárselo.', 'https://pics.filmaffinity.com/El_seanor_de_los_anillos_La_comunidad_del_anillo-744631610-large.jpg');
 INSERT INTO peliculas (id, name, price, genre, director, agno, sinopsis, img) VALUES (default, 'el señor de los anillos: las dos torres', 11000, 'fantasia', 'peter jackson', 2002, 'Gollum guía a Frodo y Sam a Mordor mientras Aragorn y sus compañeros defienden a Rohan del bestial ejército de Saruman.', 'https://es.web.img3.acsta.net/medias/nmedia/18/89/85/69/20070008.jpg');
