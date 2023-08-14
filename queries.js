@@ -7,6 +7,7 @@ const pool = new Pool({
   user: process.env.USER,
   password: process.env.PASSWORD,
   database: process.env.DATABASE,
+  charset: 'utf8mb4',
   allowExitOnIdle: true,
 })
 
@@ -39,7 +40,6 @@ const registrarUsuario = async (data) => {
       throw new Error("code: 404", "message: No se agregó el usuario")
     }
   } catch (error) {
-    console.log(error)
     capturaErrores(error.message, ErrorHttp["Bad Request"])
   }
 }
@@ -58,44 +58,10 @@ const verificarUsuario = async (mail) => {
   }
 }
 
-const ConvencionHATEOAS = (movies) => {
-  const results = movies.map((m) => {
-    return {
-      id: m.id,
-      titulo: m.titulo,
-      precio: m.precio,
-      director: m.director,
-      agno: m.agno,
-      //titulo_alt: m.titulo_alt,
-      href: `/peliculas/${m.id}`,
-    }
-  })
-  //.slice(0, totalJoyas);
-  const total = movies.length
-  const HATEOAS = {
-    total,
-    results,
-  }
-  return HATEOAS
-}
-
-const GetMovies = async () => {
+const getMovies = async () => {
   try {
     const {rows} = await pool.query("SELECT * FROM peliculas")
     return rows
-  } catch (error) {
-    throw {code: 404, message: error.message}
-  }
-}
-
-const GetMovie = async (id) => {
-  try {
-    const value = [id]
-    const qry =
-      "SELECT id,titulo,precio,director,agno,categoria,sinopsis" +
-      " FROM peliculas WHERE id = $1"
-    const {rows: movies} = await pool.query(qry, value)
-    return movies
   } catch (error) {
     throw {code: 404, message: error.message}
   }
@@ -112,51 +78,28 @@ const getUsuario = async (mail) => {
   }
 }
 
-const deleteUsuario = async (id) => {
-  const consulta = "DELETE FROM usuarios WHERE id = $1"
-  const values = [id]
-  const {rowCount} = await pool.query(consulta, values)
-  if (!rowCount)
-    throw {code: 404, message: "No se encontró ningún usuario con id $1"}
-}
-
-const updateUsuario = async (id, body) => {
-  try {
-    const {rol, lenguage} = body
-    const values = [rol, lenguage, id]
-
-    //Query parametrizada
-    const qry = "UPDATE usuarios SET rol = $1,lenguage = $2 WHERE id = $3"
-
-    const {rowCount} = await pool.query(qry, values)
-    if (!rowCount) throw {code: 404, message: `No existe usuario con id ${id}`}
+const ingresarComentario = async(comment) => {
+try {
+    let {idpelicula, idusuario, comentario} = comment
+    const values = [idpelicula, idusuario, comentario]
+    const consulta = "insert into usuario_pelicula values ($1, $2, $3)"
+    const {rowCount} = await pool.query(consulta, values)
+    if (!rowCount) {
+      throw new Error("code: 404", "message: No se agregó el comentario")
+    }
   } catch (error) {
-    console.log("error:" + error)
-    throw {code: 500, error: error.message}
+    console.log(error.message, ErrorHttp["Bad Request"])
   }
 }
 
-const updatePaswword = async (id, body) => {
+const getComments = async (movie) => {
   try {
-    const {password} = body
-    const values = [id]
-
-    const qry = "SELECT id FROM usuarios WHERE id = $1"
-    const {rowCount} = await pool.query(qry, values)
-    if (!rowCount)
-      throw {
-        code: 404,
-        message: `No se encontró ningún usuario con id ${id}`,
-      }
-    else {
-      const passwordEncriptada = bcrypt.hashSync(password, 10)
-      const values = [passwordEncriptada, id]
-      const qry = "UPDATE usuarios SET password = $1 WHERE id = $2"
-      const {rowCount} = await pool.query(qry, values)
-    }
+    const values = [movie]
+    const consulta = "SELECT up.comentario FROM usuario_pelicula up INNER JOIN peliculas p on p.id = up.idpelicula where p.name = $1"
+    const {rows} = await pool.query(consulta, values)
+    return rows
   } catch (error) {
-    console.log("error:" + error)
-    throw {code: 500, error: error.message}
+    throw {code: 404, message: error.message}
   }
 }
 
@@ -165,10 +108,7 @@ module.exports = {
   registrarUsuario,
   verificarUsuario,
   getUsuario,
-  GetMovie,
-  GetMovies,
-  deleteUsuario,
-  updateUsuario,
-  updatePaswword,
-  ConvencionHATEOAS,
+  getMovies,
+  ingresarComentario,
+  getComments
 }

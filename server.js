@@ -5,11 +5,12 @@ const cors = require("cors")
 const jwt = require("jsonwebtoken")
 
 const {
-  GetMovies,
-  GetMovie,
+  getMovies,
   verificarCredenciales,
   registrarUsuario,
   getUsuario,
+  ingresarComentario,
+  getComments,
 } = require("./queries")
 const {isAuth, usuarioExiste} = require("./middleware")
 
@@ -54,17 +55,26 @@ app.get("/usuarios", isAuth, async(req, res) => {
 
 app.get("/peliculas", async (req, res) => {
   try {
-    const movies = await GetMovies()
+    const movies = await getMovies()
     res.json(movies)
   } catch (error) {
     res.status(400).send(error.message)
   }
 })
 
-app.get("/peliculas/:id", async (req, res) => {
+app.post("/pelicula", async (req, res) => {
   try {
-    const movies = await GetMovie(req.params.id)
-    res.json(movies)
+    await ingresarComentario(req.body)
+    res.status(201).send({code: 201, message: "Comentario ingresado"})
+  } catch (error) {
+    res.status(error.code || 500).send(error)
+  }
+})
+
+app.get("/pelicula/:id", async (req, res) => {
+  try {
+    const comentarios = await getComments(req.params.id)
+    res.json(comentarios)
   } catch (error) {
     res.status(400).send(error.message)
   }
